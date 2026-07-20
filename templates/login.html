@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Login — GPS Emergency Tracker{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="logo">
+      <div style="width:48px;height:48px;background:var(--accent);border-radius:0px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:#FFF"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path><path d="M2 12h20"></path></svg>
+      </div>
+    </div>
+    <h2>Welcome back</h2>
+    <p class="subtitle">Sign in to your GPS Tracker account</p>
+ 
+    <form method="POST" action="{{ url_for('login') }}" id="login-form">
+      <div class="form-group">
+        <label class="form-label" for="email">Email Address</label>
+        <input type="email" id="email" name="email" class="form-control"
+               placeholder="you@example.com" required autocomplete="email">
+      </div>
+ 
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input type="password" id="password" name="password" class="form-control"
+               placeholder="••••••••" required autocomplete="current-password">
+      </div>
+ 
+      <div class="auth-footer-options">
+        <label>
+          <input type="checkbox" name="remember" style="accent-color:var(--accent)">
+          Remember me
+        </label>
+        <a href="#" onclick="alert('Password reset link has been dispatched to your email (Mock).'); return false;">Forgot Password?</a>
+      </div>
+ 
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center" id="login-btn">
+        Sign In
+      </button>
+    </form>
+ 
+    <div class="auth-divider">or</div>
+ 
+    <p style="text-align:center;font-size:.875rem;color:var(--text-secondary)">
+      Don't have an account?
+      <a href="{{ url_for('register') }}" style="color:var(--accent);font-weight:600">Create one free</a>
+    </p>
+ 
+    <hr class="divider">
+    <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 16px;font-size:.8rem;color:var(--text-secondary)">
+      <strong style="color:var(--text-primary)">🔑 Demo Admin:</strong><br>
+      Email: <code style="color:var(--accent)">admin@gpstracker.com</code><br>
+      Password: <code style="color:var(--accent)">admin123</code>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById("login-form").addEventListener("submit", function() {
+  const btn = document.getElementById("login-btn");
+  btn.innerHTML = '<span class="loader"></span> Signing in…';
+  btn.disabled = true;
+});
+</script>
+{% endblock %}

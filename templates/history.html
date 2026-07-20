@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block title %}Location History — GPS Emergency Tracker{% endblock %}
+
+{% block content %}
+<div class="history-wrapper animate-slide">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px">
+    <div>
+      <h1 class="section-title">Location History</h1>
+      <p class="section-sub" style="margin:0">Your recent location trail and emergency alerts</p>
+    </div>
+    <a href="{{ url_for('tracker') }}" class="btn btn-primary btn-sm">Live Tracker</a>
+  </div>
+
+  <!-- Alerts -->
+  {% if alerts %}
+  <div class="card" style="margin-bottom:24px">
+    <div class="card-title">Recent Alerts</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Reason</th>
+            <th>Location</th>
+            <th>Confidence</th>
+            <th>Time</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for alert in alerts %}
+          <tr id="alert-row-{{ alert.id }}">
+            <td>
+              {% if alert.alert_type == 'SOS' %}
+                <span class="badge badge-danger">SOS</span>
+              {% elif alert.alert_type == 'EMERGENCY' %}
+                <span class="badge badge-danger">Emergency</span>
+              {% else %}
+                <span class="badge badge-warning">{{ alert.alert_type }}</span>
+              {% endif %}
+            </td>
+            <td style="max-width:200px;word-break:break-word">{{ alert.message or '—' }}</td>
+            <td>
+              {% if alert.latitude %}
+              <a href="https://maps.google.com/?q={{ alert.latitude }},{{ alert.longitude }}"
+                 target="_blank" style="color:var(--text-primary);font-size:.8rem;text-decoration:underline">
+                {{ "%.4f"|format(alert.latitude) }}, {{ "%.4f"|format(alert.longitude) }}
+              </a>
+              {% else %}—{% endif %}
+            </td>
+            <td>
+              <span style="color:{{ 'var(--danger)' if alert.confidence > 80 else 'var(--warning)' if alert.confidence > 50 else 'var(--success)' }};font-weight:600">
+                {{ alert.confidence }}%
+              </span>
+            </td>
+            <td style="white-space:nowrap">{{ alert.timestamp.strftime('%d %b %Y %H:%M') }}</td>
+            <td>
+              {% if alert.resolved %}
+                <span class="badge badge-success">Resolved</span>
+              {% else %}
+                <span class="badge badge-danger">Active</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if not alert.resolved %}
+              <button class="btn btn-ghost btn-sm" onclick="resolveAlert({{ alert.id }})">
+                Resolve
+              </button>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Map with trail -->
+  <div class="card" style="margin-bottom:24px">
+    <div class="card-title">Location Trail</div>
+    <div id="history-map" style="height:380px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--border)"></div>
+  </div>
+
+  <!-- Location log -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="card-title" style="margin:0">Location Log</div>
+      <span style="font-size:.8rem;color:var(--text-secondary)">
+        {{ locations.total }} records total
+      </span>
+    </div>
+
+    {% if locations.items %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Address</th>
+            <th>Coordinates</th>
+            <th>Speed</th>
+            <th>Accuracy</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for loc in locations.items %}
+          <tr>
+            <td style="color:var(--text-muted)">{{ loc.id }}</td>
+            <td style="max-width:250px;font-size:.8rem">{{ loc.address or '—' }}</td>
+            <td>
+              <a href="https://maps.google.com/?q={{ loc.latitude }},{{ loc.longitude }}"
+                 target="_blank" style="color:var(--text-primary);font-size:.8rem;text-decoration:underline">
+                {{ "%.5f"|format(loc.latitude) }}, {{ "%.5f"|format(loc.longitude) }}
+              </a>
+            </td>
+            <td>{{ "%.1f"|format(loc.speed_kmh) }} km/h</td>
+            <td>{{ loc.accuracy | int }}m</td>
+            <td style="white-space:nowrap;font-size:.8rem">{{ loc.timestamp.strftime('%d %b %H:%M:%S') }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:20px">
+      {% if locations.has_prev %}
+      <a href="{{ url_for('history', page=locations.prev_num) }}" class="btn btn-ghost btn-sm">Prev</a>
+      {% endif %}
+      <span style="font-size:.85rem;color:var(--text-secondary)">
+        Page {{ locations.page }} of {{ locations.pages }}
+      </span>
+      {% if locations.has_next %}
+      <a href="{{ url_for('history', page=locations.next_num) }}" class="btn btn-ghost btn-sm">Next</a>
+      {% endif %}
+    </div>
+    {% else %}
+      <div style="text-align:center;padding:32px;color:var(--text-muted)">
+        No location data yet. Start tracking to see your history here.
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+// History map with trail
+const map = L.map("history-map").setView([20.5937, 78.9629], 5);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: '© OpenStreetMap', maxZoom: 19
+}).addTo(map);
+
+fetch("/api/history?hours=24")
+  .then(r => r.json())
+  .then(locs => {
+    if (!locs.length) return;
+    const coords = locs.map(l => [l.latitude, l.longitude]);
+    const trail  = L.polyline(coords, { color: "#111111", weight: 3, opacity: 0.7 }).addTo(map);
+    map.fitBounds(trail.getBounds(), { padding: [40, 40] });
+
+    // Start marker
+    L.circleMarker(coords[0], { radius: 6, color: "#16a34a", fillColor: "#16a34a", fillOpacity: 1 })
+      .addTo(map).bindPopup("Start: " + locs[0].timestamp);
+
+    // End marker
+    const last = coords[coords.length - 1];
+    L.circleMarker(last, { radius: 6, color: "#dc2626", fillColor: "#dc2626", fillOpacity: 1 })
+      .addTo(map).bindPopup("Latest: " + locs[locs.length - 1].timestamp);
+  });
+
+// Resolve alert
+async function resolveAlert(id) {
+  if (!confirm("Mark this alert as resolved?")) return;
+  const resp = await fetch(`/api/alert/${id}/resolve`, { method: "POST" });
+  if (resp.ok) {
+    const row = document.getElementById(`alert-row-${id}`);
+    if (row) row.querySelector("td:nth-child(6)").innerHTML = '<span class="badge badge-success">✅ Resolved</span>';
+  }
+}
+</script>
+{% endblock %}

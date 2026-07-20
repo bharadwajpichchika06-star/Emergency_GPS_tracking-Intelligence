@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+{% block title %}Settings — GPS Emergency Tracker{% endblock %}
+
+{% block content %}
+<div class="settings-wrapper animate-slide" style="max-width:760px;margin:0 auto">
+
+  <div style="margin-bottom:32px">
+    <h1 class="section-title">Settings</h1>
+    <p class="section-sub">Configure your GPS Tracker account and email notification system.</p>
+  </div>
+
+  <!-- Email Status Banner -->
+  {% if email_configured %}
+  <div style="display:flex;align-items:center;gap:12px;padding:14px 20px;
+              background:var(--success-bg);border:1px solid rgba(22,163,74,0.2);
+              border-radius:var(--radius-md);margin-bottom:28px;font-size:.875rem">
+    <div>
+      <strong style="color:var(--success)">Email alerts are active</strong><br>
+      <span style="color:var(--text-secondary)">Sending from: <code>{{ mail_username }}</code></span>
+    </div>
+    <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="sendTestEmail()">
+      Send Test Email
+    </button>
+  </div>
+  {% else %}
+  <div style="display:flex;align-items:center;gap:12px;padding:14px 20px;
+              background:var(--danger-bg);border:1px solid rgba(220,38,38,0.2);
+              border-radius:var(--radius-md);margin-bottom:28px;font-size:.875rem">
+    <div>
+      <strong style="color:var(--danger)">Email alerts are NOT configured</strong><br>
+      <span style="color:var(--text-secondary)">Your emergency contacts will not receive emails until you configure Gmail below.</span>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Gmail SMTP Setup -->
+  <div class="card" style="margin-bottom:24px">
+    <div class="card-title">Gmail Email Configuration</div>
+
+    <!-- Step-by-step instructions -->
+    <div style="background:var(--bg-secondary);border:1px solid var(--border);
+                border-radius:var(--radius-md);padding:18px;margin-bottom:24px">
+      <p style="font-weight:700;font-size:.875rem;margin-bottom:12px;color:var(--text-primary)">
+        How to get a Gmail App Password:
+      </p>
+      <ol style="padding-left:20px;font-size:.82rem;color:var(--text-secondary);line-height:2">
+        <li>Go to your <a href="https://myaccount.google.com" target="_blank" style="text-decoration:underline">Google Account</a></li>
+        <li>Click <strong>Security</strong> and enable <strong>2-Step Verification</strong></li>
+        <li>Go to <strong>Security &rarr; App Passwords</strong></li>
+        <li>Choose App: <strong>Mail</strong>, Device: <strong>Other</strong>, and enter "GPS Tracker"</li>
+        <li>Copy the <strong>16-character password</strong> shown</li>
+        <li>Paste it in the <strong>App Password</strong> field below</li>
+      </ol>
+      <a href="https://myaccount.google.com/apppasswords" target="_blank"
+         class="btn btn-ghost btn-sm" style="margin-top:12px">
+        Open Google App Passwords Page
+      </a>
+    </div>
+
+    <!-- Email form -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label" for="mail-user">Your Gmail Address *</label>
+        <input type="email" id="mail-user" class="form-control"
+               placeholder="yourname@gmail.com"
+               value="{{ mail_username }}" autocomplete="email">
+      </div>
+
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label" for="mail-pass">Gmail App Password * <span style="color:var(--text-muted);font-weight:400;text-transform:none">(16 chars, no spaces)</span></label>
+        <div style="position:relative">
+          <input type="password" id="mail-pass" class="form-control"
+                 placeholder="xxxx xxxx xxxx xxxx" autocomplete="new-password"
+                 style="padding-right:50px">
+          <button type="button" onclick="togglePw()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem" id="pw-eye">👁</button>
+        </div>
+        <div style="font-size:.75rem;color:var(--text-muted);margin-top:6px">
+          Note: This must be a Google App Password, not your standard master login password.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="mail-server">SMTP Server</label>
+        <input type="text" id="mail-server" class="form-control"
+               value="{{ mail_server }}" placeholder="smtp.gmail.com">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="mail-port">SMTP Port</label>
+        <input type="number" id="mail-port" class="form-control"
+               value="{{ mail_port }}" placeholder="587">
+      </div>
+    </div>
+
+    <!-- Test + Save -->
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:12px">
+      <button class="btn btn-primary" onclick="saveEmailConfig()" id="save-btn">
+        Save Configuration
+      </button>
+      <button class="btn btn-secondary" onclick="sendTestEmail()" id="test-btn">
+        Send Test Email
+      </button>
+    </div>
+
+    <!-- Result box -->
+    <div id="email-result" style="display:none;margin-top:16px;padding:14px 18px;border-radius:var(--radius-md);font-size:.875rem"></div>
+  </div>
+
+  <!-- Profile Settings -->
+  <div class="card" style="margin-bottom:24px">
+    <div class="card-title">Account Information</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div>
+        <div class="form-label">Name</div>
+        <div style="font-weight:600;color:var(--text-primary)">{{ current_user.name }}</div>
+      </div>
+      <div>
+        <div class="form-label">Email</div>
+        <div style="font-weight:600;color:var(--text-primary)">{{ current_user.email }}</div>
+      </div>
+      <div>
+        <div class="form-label">Phone</div>
+        <div style="font-weight:600;color:var(--text-primary)">{{ current_user.phone or '—' }}</div>
+      </div>
+      <div>
+        <div class="form-label">Role</div>
+        <div>
+          {% if current_user.is_admin %}
+          <span class="badge badge-warning">Admin</span>
+          {% else %}
+          <span class="badge badge-muted">User</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- How Alerts Work -->
+  <div class="card" style="margin-bottom:24px">
+    <div class="card-title">How Alerts Work</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px">
+      {% for step, icon, title, desc in [
+        ('1','🆘','SOS Triggered','You press SOS or auto-detection fires'),
+        ('2','📧','Email Sent','All contacts get an HTML email instantly'),
+        ('3','💬','SMS Sent','Twilio sends text updates to your contacts'),
+        ('4','📞','Phone Called','Twilio calls contacts and reads alert details'),
+        ('5','✅','Stay Safe','Contacts can locate you in real-time'),
+      ] %}
+      <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px">
+        <div style="font-size:1.6rem;margin-bottom:8px">{{ icon }}</div>
+        <div style="font-size:.7rem;color:var(--text-secondary);font-weight:700;letter-spacing:.08em;margin-bottom:4px">STEP {{ step }}</div>
+        <div style="font-weight:700;font-size:.875rem;margin-bottom:4px;color:var(--text-primary)">{{ title }}</div>
+        <div style="font-size:.78rem;color:var(--text-secondary)">{{ desc }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Twilio Voice Calls -->
+  <div class="card">
+    <div class="card-title">Twilio Voice Call Configuration</div>
+
+    <!-- Twilio status banner -->
+    {% if twilio_configured %}
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 18px;
+                background:var(--success-bg);border:1px solid rgba(22,163,74,0.2);
+                border-radius:var(--radius-md);margin-bottom:20px;font-size:.875rem">
+      <span>Twilio is <strong style="color:var(--success)">configured</strong> — calls will fire on emergency trigger.</span>
+      <span style="color:var(--text-secondary);font-size:.78rem;margin-left:auto">Sender Number: {{ twilio_from }}</span>
+    </div>
+    {% else %}
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 18px;
+                background:var(--danger-bg);border:1px solid rgba(220,38,38,0.2);
+                border-radius:var(--radius-md);margin-bottom:20px;font-size:.875rem">
+      <span>Twilio is <strong style="color:var(--danger)">not configured</strong> — voice calls and SMS alerts are inactive.</span>
+    </div>
+    {% endif %}
+
+    <!-- How to get Twilio credentials -->
+    <div style="background:var(--bg-secondary);border:1px solid var(--border);
+                border-radius:var(--radius-md);padding:18px;margin-bottom:24px">
+      <p style="font-weight:700;font-size:.875rem;margin-bottom:12px;color:var(--text-primary)">
+        How to configure Twilio (free trial supported):
+      </p>
+      <ol style="padding-left:20px;font-size:.82rem;color:var(--text-secondary);line-height:2.1">
+        <li>Create a free account at <a href="https://www.twilio.com" target="_blank" style="text-decoration:underline">twilio.com</a></li>
+        <li>Verify your email and target phone number</li>
+        <li>On the console dashboard, copy your <strong>Account SID</strong> and <strong>Auth Token</strong></li>
+        <li>Acquire a Twilio Phone Number and copy it (e.g. <code>+12345678900</code>)</li>
+        <li>Add target numbers at <a href="https://console.twilio.com/us1/develop/phone-numbers/manage/verified" target="_blank" style="text-decoration:underline">Twilio Verified Caller IDs</a></li>
+        <li>Input the keys below and click Save</li>
+      </ol>
+      <a href="https://console.twilio.com" target="_blank" class="btn btn-ghost btn-sm" style="margin-top:12px">
+        Open Twilio Console
+      </a>
+    </div>
+
+    <!-- Twilio form -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label" for="tw-sid">Account SID *</label>
+        <input type="text" id="tw-sid" class="form-control"
+               placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+               value="{{ twilio_sid }}" autocomplete="off">
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label" for="tw-token">Auth Token * <span style="color:var(--text-muted);font-weight:400;text-transform:none">(keep secret)</span></label>
+        <div style="position:relative">
+          <input type="password" id="tw-token" class="form-control"
+                 placeholder="Your Twilio Auth Token" autocomplete="new-password"
+                 style="padding-right:50px">
+          <button type="button" onclick="toggleTwToken()" id="tw-eye"
+                  style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
+                         background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem">👁</button>
+        </div>
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label" for="tw-from">Twilio Phone Number * <span style="color:var(--text-muted);font-weight:400;text-transform:none">(with country code, e.g. +12345678900)</span></label>
+        <input type="text" id="tw-from" class="form-control"
+               placeholder="+12345678900"
+               value="{{ twilio_from }}" autocomplete="off">
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label" for="tw-test-num">Test Call Number <span style="color:var(--text-muted);font-weight:400;text-transform:none">(your verified number to receive test call)</span></label>
+        <input type="tel" id="tw-test-num" class="form-control"
+               placeholder="+919999900000 (must be verified on Twilio)"
+               value="{{ current_user.phone or '' }}">
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:12px">
+      <button class="btn btn-primary" onclick="saveTwilioConfig()" id="tw-save-btn">
+        Save Twilio Config
+      </button>
+      <button class="btn btn-secondary" onclick="sendTestCall()" id="tw-test-btn">
+        Send Test Call
+      </button>
+      <button class="btn btn-secondary" onclick="sendTestSms()" id="tw-sms-btn">
+        Send Test SMS
+      </button>
+    </div>
+
+    <div id="twilio-result" style="display:none;margin-top:16px;padding:14px 18px;border-radius:var(--radius-md);font-size:.875rem"></div>
+    <div id="sms-result"    style="display:none;margin-top:10px;padding:14px 18px;border-radius:var(--radius-md);font-size:.875rem"></div>
+  </div>
+
+</div>
+
+<script>
+/* ── Email helpers ── */
+function togglePw() {
+  const inp = document.getElementById("mail-pass");
+  const eye = document.getElementById("pw-eye");
+  inp.type = inp.type === "password" ? "text" : "password";
+  eye.textContent = inp.type === "password" ? "👁" : "🙈";
+}
+
+function getFormValues() {
+  return {
+    username: document.getElementById("mail-user").value.trim(),
+    password: document.getElementById("mail-pass").value.trim(),
+    server:   document.getElementById("mail-server").value.trim(),
+    port:     parseInt(document.getElementById("mail-port").value) || 587,
+  };
+}
+
+function showResult(success, message, elId = "email-result") {
+  const el = document.getElementById(elId);
+  el.style.display = "block";
+  el.style.background = success ? "rgba(16,185,129,0.12)" : "rgba(239,68,68,0.12)";
+  el.style.border = success ? "1px solid rgba(16,185,129,0.4)" : "1px solid rgba(239,68,68,0.4)";
+  el.style.color  = success ? "var(--success)" : "var(--danger)";
+  el.innerHTML    = (success ? "✅ " : "❌ ") + message;
+}
+
+async function saveEmailConfig() {
+  const btn  = document.getElementById("save-btn");
+  const vals = getFormValues();
+  if (!vals.username || !vals.password) { showResult(false, "Please enter both Gmail address and App Password."); return; }
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loader"></span> Saving…';
+  try {
+    const resp = await fetch("/api/save-email-config", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(vals) });
+    const data = await resp.json();
+    showResult(data.success, data.message);
+    if (data.success) setTimeout(() => location.reload(), 1800);
+  } catch(e) { showResult(false, "Network error: " + e.message); }
+  finally { btn.disabled = false; btn.innerHTML = "💾 Save Configuration"; }
+}
+
+async function sendTestEmail() {
+  const btn  = document.getElementById("test-btn");
+  const vals = getFormValues();
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loader"></span> Sending…';
+  try {
+    const resp = await fetch("/api/test-email", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({...vals, to_email:"{{ current_user.email }}"}) });
+    const data = await resp.json();
+    showResult(data.success, data.success ? "Test email sent to {{ current_user.email }}! Check your inbox." : "Failed: " + data.message);
+  } catch(e) { showResult(false, "Network error: " + e.message); }
+  finally { btn.disabled = false; btn.innerHTML = "📧 Send Test Email to Me"; }
+}
+
+/* ── Twilio helpers ── */
+function toggleTwToken() {
+  const inp = document.getElementById("tw-token");
+  const eye = document.getElementById("tw-eye");
+  inp.type = inp.type === "password" ? "text" : "password";
+  eye.textContent = inp.type === "password" ? "👁" : "🙈";
+}
+
+function getTwilioValues() {
+  return {
+    sid:         document.getElementById("tw-sid").value.trim(),
+    token:       document.getElementById("tw-token").value.trim(),
+    from_number: document.getElementById("tw-from").value.trim(),
+  };
+}
+
+async function saveTwilioConfig() {
+  const btn  = document.getElementById("tw-save-btn");
+  const vals = getTwilioValues();
+  if (!vals.sid || !vals.token || !vals.from_number) {
+    showResult(false, "Please fill in all three Twilio fields.", "twilio-result"); return;
+  }
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loader"></span> Saving…';
+  try {
+    const resp = await fetch("/api/save-twilio-config", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(vals) });
+    const data = await resp.json();
+    showResult(data.success, data.message, "twilio-result");
+    if (data.success) setTimeout(() => location.reload(), 1800);
+  } catch(e) { showResult(false, "Network error: " + e.message, "twilio-result"); }
+  finally { btn.disabled = false; btn.innerHTML = "💾 Save Twilio Config"; }
+}
+
+async function sendTestCall() {
+  const btn    = document.getElementById("tw-test-btn");
+  const vals   = getTwilioValues();
+  const toNum  = document.getElementById("tw-test-num").value.trim();
+  if (!toNum) { showResult(false, "Enter a phone number to receive the test call.", "twilio-result"); return; }
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loader"></span> Calling…';
+  try {
+    const resp = await fetch("/api/test-call", {
+      method:  "POST",
+      headers: {"Content-Type":"application/json"},
+      body:    JSON.stringify({ ...vals, to_number: toNum }),
+    });
+    const data = await resp.json();
+    showResult(
+      data.success,
+      data.success
+        ? `📞 Test call placed to ${toNum}! Your phone should ring in a few seconds.`
+        : "Failed: " + data.message,
+      "twilio-result"
+    );
+  } catch(e) { showResult(false, "Network error: " + e.message, "twilio-result"); }
+  finally { btn.disabled = false; btn.innerHTML = "📞 Send Test Call"; }
+}
+
+async function sendTestSms() {
+  const btn   = document.getElementById("tw-sms-btn");
+  const vals  = getTwilioValues();
+  const toNum = document.getElementById("tw-test-num").value.trim();
+  if (!toNum) { showResult(false, "Enter a phone number in the 'Test Call Number' field to receive the SMS.", "sms-result"); return; }
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loader"></span> Sending…';
+  try {
+    const resp = await fetch("/api/test-sms", {
+      method:  "POST",
+      headers: {"Content-Type":"application/json"},
+      body:    JSON.stringify({ ...vals, to_number: toNum }),
+    });
+    const data = await resp.json();
+    showResult(
+      data.success,
+      data.success
+        ? `💬 Test SMS sent to ${toNum}! Check your messages.`
+        : "Failed: " + data.message,
+      "sms-result"
+    );
+  } catch(e) { showResult(false, "Network error: " + e.message, "sms-result"); }
+  finally { btn.disabled = false; btn.innerHTML = "💬 Send Test SMS"; }
+}
+</script>
+{% endblock %}

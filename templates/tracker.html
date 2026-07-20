@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}Live Tracker — GPS Emergency Tracker{% endblock %}
+
+{% block content %}
+<div class="tracker-layout animate-slide">
+  <!-- ── Control Panel (20% sidebar) ── -->
+  <div class="tracker-sidebar">
+    <div class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 20px; box-shadow: var(--shadow-md)">
+      
+      <!-- Tracking Toggle Section -->
+      <div>
+        <div class="card-title" style="margin-bottom: 12px">Tracking Status</div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+          <span id="track-status" class="badge badge-muted">● Idle</span>
+          <button id="tracking-btn" class="btn btn-primary" style="width: 100%" onclick="startTracking()">Start Tracking</button>
+        </div>
+      </div>
+
+      <hr class="divider" style="margin: 0">
+
+      <!-- SOS Button Section -->
+      <div style="text-align: center">
+        <div class="sos-btn-wrap" style="margin: 12px 0; gap: 14px; align-items: center">
+          <button class="btn-sos" id="sos-btn" style="width: 110px; height: 110px; font-size: 0.9rem" onclick="triggerSOS()">
+            SOS
+          </button>
+          <!-- Voice Assistant mic button — wired up by static/js/voice.js.
+               Kept as a separate control from SOS; both ultimately call the
+               same checkEmergency()/api/emergency backend function. -->
+          <button class="btn-mic" id="mic-btn"
+                  title='Tap and say: "Help me", "SOS", "Emergency", "Call police"...'
+                  aria-label="Voice emergency assistant">
+            <span id="mic-icon">🎙️</span>
+            <span class="mic-label">Voice</span>
+          </button>
+        </div>
+        <p style="font-size: 0.75rem; color: var(--text-secondary)">Tap SOS, or tap 🎙️ and say an emergency phrase</p>
+        <p id="voice-status-text" style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px"></p>
+      </div>
+
+      <hr class="divider" style="margin: 0">
+
+      <!-- Emergency Status Badge -->
+      <div id="emergency-panel" style="padding: 12px; border-radius: var(--radius-md); background: var(--bg-secondary); border: 1px solid var(--border); text-align: center">
+        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); margin-bottom: 4px">Security Status</div>
+        <div style="color: var(--success); font-weight: 700; font-size: 0.85rem">All Clear — Monitoring</div>
+      </div>
+
+      <!-- Call Panel (shown on active emergency) -->
+      <div id="call-panel" style="display: none; padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--danger); background: var(--danger-bg)"></div>
+
+      <!-- Location Section -->
+      <div>
+        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); margin-bottom: 6px; font-weight: 700">Current Location</div>
+        <div id="current-address" style="font-size: 0.82rem; color: var(--text-primary); line-height: 1.4; min-height: 32px">
+          Start tracking to locate your device…
+        </div>
+      </div>
+
+      <hr class="divider" style="margin: 0">
+
+      <!-- Collapsible Advanced Options -->
+      <details style="font-size: 0.8rem; color: var(--text-secondary)">
+        <summary style="cursor: pointer; font-weight: 600; outline: none; margin-bottom: 8px; user-select: none; color: var(--text-primary)">
+          Advanced Details
+        </summary>
+        <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid var(--border)">
+          <div style="display: flex; justify-content: space-between">
+            <span>Latitude</span>
+            <span id="info-lat" style="font-weight: 600; color: var(--text-primary)">—</span>
+          </div>
+          <div style="display: flex; justify-content: space-between">
+            <span>Longitude</span>
+            <span id="info-lon" style="font-weight: 600; color: var(--text-primary)">—</span>
+          </div>
+          <div style="display: flex; justify-content: space-between">
+            <span>Speed</span>
+            <span id="info-speed" style="font-weight: 600; color: var(--text-primary)">—</span>
+          </div>
+          <div style="display: flex; justify-content: space-between">
+            <span>Accuracy</span>
+            <span id="info-accuracy" style="font-weight: 600; color: var(--text-primary)">—</span>
+          </div>
+          <div style="display: flex; justify-content: space-between">
+            <span>Updated</span>
+            <span id="info-time" style="font-weight: 600; color: var(--text-primary)">—</span>
+          </div>
+          
+          <button class="btn btn-ghost btn-sm" style="width: 100%; margin-top: 8px" onclick="addSafeZoneHere()">
+            Add Safe Zone Here
+          </button>
+        </div>
+      </details>
+
+    </div>
+  </div><!-- /sidebar -->
+
+  <!-- ── Main Map Area ── -->
+  <div class="tracker-main">
+    <div class="card" style="padding:16px;flex:1;display:flex;flex-direction:column;gap:12px;box-shadow:none;border:none;height:100%">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="card-title" style="margin:0">Live Map</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="state.map && state.map.locate({setView:true,maxZoom:17})" title="Center on location">
+            Center
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="enableManualPinDrop()" title="Click map to set location manually (useful on PC)">
+            Set Manually
+          </button>
+          <a href="{{ url_for('history') }}" class="btn btn-ghost btn-sm">History</a>
+        </div>
+      </div>
+
+      <div id="map" style="flex:1;min-height:480px;border-radius:var(--radius-lg);border:1px solid var(--border)"></div>
+    </div>
+  </div>
+
+</div><!-- /tracker-layout -->
+
+<!-- Alarm audio (silent by default, plays on emergency) -->
+<audio id="alarm-audio" loop preload="auto">
+  <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA..." type="audio/wav">
+</audio>
+
+<!-- Inject emergency contacts + user info for JS -->
+<script>
+window.CURRENT_USER_NAME = {{ current_user.name | tojson }};
+window.EMERGENCY_CONTACTS = [
+  {% for c in contacts %}
+  { name: {{ c.name | tojson }}, phone: {{ (c.phone or '') | tojson }}, relation: {{ c.relation | tojson }} }{{ ',' if not loop.last }}
+  {% endfor %}
+];
+</script>
+
+<script src="{{ url_for('static', filename='js/tracker.js') }}"></script>
+<!-- Voice Assistant: adds mic-triggered emergency commands. Loaded after
+     tracker.js so it can reuse the SAME checkEmergency()/state that the
+     SOS button already uses — see static/js/voice.js for details. -->
+<script src="{{ url_for('static', filename='js/voice.js') }}"></script>
+
+<script>
+// Update tracking status badge dynamically
+const origStart = window.startTracking;
+const origStop  = window.stopTracking;
+window.startTracking = function() {
+  document.getElementById("track-status").innerHTML = '<span class="live-dot"></span> Live';
+  document.getElementById("track-status").className = "badge badge-success";
+  if (origStart) origStart();
+};
+window.stopTracking = function() {
+  document.getElementById("track-status").textContent = "● Idle";
+  document.getElementById("track-status").className = "badge badge-muted";
+  if (origStop) origStop();
+};
+
+// Request notification permission on page load
+document.addEventListener('DOMContentLoaded', async () => {
+  if ('Notification' in window && Notification.permission === 'default') {
+    await requestNotificationPermission();
+  }
+});
+</script>
+{% endblock %}

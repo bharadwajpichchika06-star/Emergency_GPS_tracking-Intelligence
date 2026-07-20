@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}GPS Emergency Tracker — Real-Time Safety{% endblock %}
+
+{% block content %}
+<div style="min-height: calc(100vh - 120px); display: flex; align-items: center; justify-content: center; padding: 20px">
+  <div class="card animate-slide" style="width: 100%; max-width: 440px; text-align: center; padding: 40px; box-shadow: var(--shadow-md)">
+    
+    <!-- Logo SVG -->
+    <div style="margin-bottom: 24px">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-primary)"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path><path d="M2 12h20"></path></svg>
+    </div>
+
+    <h1 style="font-size: 1.75rem; font-weight: 700; color: var(--text-primary); letter-spacing: -0.03em; margin-bottom: 8px">
+      GPS Tracker
+    </h1>
+    
+    <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 32px">
+      Real-time safety monitoring. Track your location, define safe boundaries, and alert contacts with a single tap.
+    </p>
+
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg" style="justify-content: center">
+        Create Account
+      </a>
+      <a href="{{ url_for('login') }}" class="btn btn-secondary btn-lg" style="justify-content: center">
+        Sign In
+      </a>
+    </div>
+
+    <hr class="divider" style="margin: 28px 0">
+
+    <div style="font-size: 0.78rem; color: var(--text-secondary)">
+      Free and open-source emergency monitoring tool.
+    </div>
+
+  </div>
+</div>
+{% endblock %}

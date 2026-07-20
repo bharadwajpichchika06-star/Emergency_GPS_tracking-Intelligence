@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}Emergency Contacts — GPS Emergency Tracker{% endblock %}
+
+{% block content %}
+<div class="contacts-wrapper animate-slide">
+  <div style="margin-bottom:32px">
+    <h1 class="section-title">Emergency Contacts</h1>
+    <p class="section-sub">These people will be notified immediately when an emergency is detected.</p>
+
+    <!-- Email status banner -->
+    {% if config.get('MAIL_USERNAME') and config.get('MAIL_PASSWORD') %}
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 18px;background:var(--success-bg);border:1px solid var(--border);font-size:.875rem">
+      <span>Email alerts are <strong style="color:var(--success)">configured</strong> — sending from <code>{{ config.get('MAIL_USERNAME') }}</code></span>
+      <a href="{{ url_for('settings') }}" style="margin-left:auto;color:var(--text-primary);font-weight:600;white-space:nowrap">Change</a>
+    </div>
+    {% else %}
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 18px;background:var(--danger-bg);border:1px solid var(--border);font-size:.875rem">
+      <span>Email alerts are <strong style="color:var(--danger)">not configured</strong>. Emergency contacts will NOT receive emails until SMTP settings are saved.</span>
+      <a href="{{ url_for('settings') }}" class="btn btn-danger btn-sm" style="margin-left:auto;white-space:nowrap">Set Up Email</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="contacts-grid">
+
+    <!-- Contact List -->
+    <div>
+      {% if contacts %}
+        <div style="display:flex;flex-direction:column;gap:14px">
+          {% for c in contacts %}
+          <div class="contact-card">
+            <div class="contact-avatar">{{ c.name[0].upper() }}</div>
+            <div class="contact-info">
+              <div class="contact-name">{{ c.name }}</div>
+              <div class="contact-detail">{{ c.email }}</div>
+              {% if c.phone %}<div class="contact-detail">Phone: {{ c.phone }}</div>{% endif %}
+              <span class="badge badge-info" style="margin-top:6px">{{ c.relation }}</span>
+            </div>
+            <!-- Action buttons -->
+            <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;align-items:flex-end">
+              {% if c.phone %}
+              <a href="tel:{{ c.phone | replace(' ','') }}"
+                 class="btn btn-secondary btn-sm"
+                 style="gap:6px;min-width:80px;justify-content:center"
+                 onclick="showCallToast('{{ c.name }}')">
+                Call
+              </a>
+              {% else %}
+              <span class="btn btn-ghost btn-sm" style="opacity:.4;cursor:default;min-width:80px;justify-content:center">
+                No Phone
+              </span>
+              {% endif %}
+              <form method="POST" onsubmit="return confirm('Remove {{ c.name }}?')">
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="contact_id" value="{{ c.id }}">
+                <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--danger);min-width:80px;justify-content:center">Remove</button>
+              </form>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+      {% else %}
+        <div class="card" style="text-align:center;padding:48px">
+          <h3 style="margin-bottom:8px">No contacts yet</h3>
+          <p style="color:var(--text-secondary);font-size:.875rem">
+            Add at least one emergency contact so they can be alerted in case of emergency.
+          </p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Add Contact Form -->
+    <div class="card" style="position:sticky;top:80px">
+      <div class="card-title">Add Contact</div>
+      <form method="POST" action="{{ url_for('contacts') }}" id="add-contact-form">
+        <input type="hidden" name="action" value="add">
+
+        <div class="form-group">
+          <label class="form-label" for="c-name">Full Name *</label>
+          <input type="text" id="c-name" name="name" class="form-control"
+                 placeholder="Jane Doe" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="c-email">Email *</label>
+          <input type="email" id="c-email" name="email" class="form-control"
+                 placeholder="jane@example.com" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="c-phone">Phone</label>
+          <input type="tel" id="c-phone" name="phone" class="form-control"
+                 placeholder="+91 99999 00000">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="c-relation">Relationship</label>
+          <select id="c-relation" name="relation" class="form-control">
+            <option value="Family">Family</option>
+            <option value="Parent">Parent</option>
+            <option value="Spouse">Spouse</option>
+            <option value="Sibling">Sibling</option>
+            <option value="Friend">Friend</option>
+            <option value="Doctor">Doctor</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">
+          Add Contact
+        </button>
+      </form>
+
+      <hr class="divider">
+
+      <div style="font-size:.8rem;color:var(--text-secondary)">
+        <strong style="color:var(--text-primary)">Alert Details</strong><br>
+        On emergency detection, voice announcements play aloud and browser notifications pop up. Setup email coordinates links using SMTP options in Settings.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+.contacts-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .contacts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+<script>
+function showCallToast(name) {
+  const container = document.getElementById("toast-container");
+  if (!container) return;
+  const toast = document.createElement("div");
+  toast.className = "toast toast-success";
+  toast.style.borderRadius = "0px";
+  toast.innerHTML = `
+    <div class="toast-body">
+      <div class="toast-title">Calling ${name}</div>
+      <div class="toast-text">Opening phone dialer…</div>
+    </div>
+    <button class="toast-close" onclick="this.parentElement.remove()">✕</button>
+  `;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+</script>
+{% endblock %}

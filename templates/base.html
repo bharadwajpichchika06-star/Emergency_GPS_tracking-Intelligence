@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="GPS Emergency Tracker — Real-time location tracking and emergency response system">
+  <title>{% block title %}GPS Emergency Tracker{% endblock %}</title>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<div class="app-layout {% if current_user.is_authenticated %}has-sidebar{% endif %}" id="app-layout">
+  
+  <!-- ── Top Navbar ── -->
+  <nav class="navbar">
+    <div class="navbar-left">
+      {% if current_user.is_authenticated %}
+      <button id="sidebar-toggle" class="sidebar-toggle-btn" title="Toggle Sidebar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      </button>
+      {% endif %}
+      <a class="navbar-brand" href="{{ url_for('index') }}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-primary);vertical-align:middle;margin-right:2px"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path><path d="M2 12h20"></path></svg>
+        <span class="brand-name">GPS Tracker</span>
+      </a>
+    </div>
+
+    <div class="navbar-right">
+      {% if current_user.is_authenticated %}
+      <span class="user-profile">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        {{ current_user.name }}
+      </span>
+      <a href="{{ url_for('logout') }}" class="btn btn-ghost btn-sm" style="border:none">Logout</a>
+      {% else %}
+      <a href="{{ url_for('login') }}" class="btn btn-ghost btn-sm">Login</a>
+      <a href="{{ url_for('register') }}" class="btn btn-primary btn-sm">Get Started</a>
+      {% endif %}
+    </div>
+  </nav>
+
+  <!-- ── Left Sidebar ── -->
+  {% if current_user.is_authenticated %}
+  <aside class="sidebar" id="sidebar">
+    <ul class="sidebar-nav">
+      <li>
+        <a href="{{ url_for('tracker') }}" class="nav-item {{ 'active' if request.endpoint == 'tracker' }}" title="Tracker">
+          <span class="sidebar-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          </span>
+          <span class="sidebar-text">Tracker</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('my_devices') }}" class="nav-item {{ 'active' if request.endpoint == 'my_devices' }}" title="My Devices">
+          <span class="sidebar-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+          </span>
+          <span class="sidebar-text">My Devices</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('contacts') }}" class="nav-item {{ 'active' if request.endpoint == 'contacts' }}" title="Contacts">
+          <span class="sidebar-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          </span>
+          <span class="sidebar-text">Contacts</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('history') }}" class="nav-item {{ 'active' if request.endpoint == 'history' }}" title="History">
+          <span class="sidebar-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          </span>
+          <span class="sidebar-text">History</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('settings') }}" class="nav-item {{ 'active' if request.endpoint == 'settings' }}" title="Settings">
+          <span class="sidebar-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          </span>
+          <span class="sidebar-text">Settings</span>
+        </a>
+      </li>
+      {% if current_user.is_admin %}
+      <li class="sidebar-divider"></li>
+      <li>
+        <a href="{{ url_for('dashboard') }}" class="nav-item {{ 'active' if request.endpoint == 'dashboard' }}" title="Admin Dashboard">
+          <span class="sidebar-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          </span>
+          <span class="sidebar-text">Admin Panel</span>
+        </a>
+      </li>
+      {% endif %}
+    </ul>
+  </aside>
+  {% endif %}
+
+  <!-- ── Main Content Area ── -->
+  <main class="main-content">
+    
+    <!-- ── Flash Messages ── -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="flash-messages">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+          {% if category == 'success' %}✅{% elif category == 'danger' %}❌{% elif category == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+          <span class="alert-message">{{ message }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- ── Toast Container ── -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- ── Page View Content ── -->
+    <div class="page-viewport">
+      {% block content %}{% endblock %}
+    </div>
+
+  </main>
+</div>
+
+<!-- ── Core Scripts ── -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('sidebar-toggle');
+    const appLayout = document.getElementById('app-layout');
+    
+    if (sidebar && toggleBtn && appLayout) {
+      // Restore collapsed state
+      const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+      if (isCollapsed) {
+        sidebar.classList.add('collapsed');
+        appLayout.classList.add('sidebar-collapsed');
+      }
+      
+      toggleBtn.addEventListener('click', () => {
+        const collapsed = sidebar.classList.toggle('collapsed');
+        appLayout.classList.toggle('sidebar-collapsed', collapsed);
+        localStorage.setItem('sidebar-collapsed', collapsed);
+        
+        // Trigger map redraw if leaflet map exists
+        if (window.map) {
+          setTimeout(() => { window.map.invalidateSize(); }, 200);
+        }
+      });
+    }
+  });
+</script>
+{% block extra_scripts %}{% endblock %}
+
+</body>
+</html>

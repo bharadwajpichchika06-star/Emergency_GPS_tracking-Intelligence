@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>GPS Emergency Tracker — Project Report</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --accent:   #6366f1;
+      --danger:   #ef4444;
+      --success:  #10b981;
+      --warning:  #f59e0b;
+      --dark:     #0f0f1a;
+      --card:     #ffffff;
+      --border:   #e5e7eb;
+      --text:     #111827;
+      --muted:    #6b7280;
+      --light:    #f9fafb;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #fff;
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    /* ── Cover Page ── */
+    .cover {
+      width: 100%;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 40%, #16213e 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 60px 40px;
+      page-break-after: always;
+      position: relative;
+      overflow: hidden;
+    }
+    .cover::before {
+      content: '';
+      position: absolute;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(99,102,241,0.25) 0%, transparent 70%);
+      top: -100px; left: -100px;
+    }
+    .cover::after {
+      content: '';
+      position: absolute;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(16,185,129,0.2) 0%, transparent 70%);
+      bottom: -50px; right: -50px;
+    }
+    .cover-badge {
+      background: rgba(99,102,241,0.2);
+      border: 1px solid rgba(99,102,241,0.5);
+      color: #a5b4fc;
+      padding: 6px 18px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+      position: relative;
+      z-index: 1;
+    }
+    .cover-icon {
+      font-size: 72px;
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 1;
+    }
+    .cover h1 {
+      font-size: 48px;
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: -1.5px;
+      line-height: 1.1;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
+    }
+    .cover h1 span { color: #818cf8; }
+    .cover-sub {
+      font-size: 18px;
+      color: rgba(255,255,255,0.6);
+      max-width: 520px;
+      margin: 0 auto 40px;
+      position: relative;
+      z-index: 1;
+    }
+    .cover-tags {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 60px;
+      position: relative;
+      z-index: 1;
+    }
+    .cover-tag {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.8);
+      padding: 6px 14px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .cover-meta {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      max-width: 480px;
+      width: 100%;
+    }
+    .cover-meta-item { text-align: center; }
+    .cover-meta-item .num {
+      font-size: 32px;
+      font-weight: 800;
+      color: #818cf8;
+    }
+    .cover-meta-item .label {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    /* ── Page Layout ── */
+    .page {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 48px 48px 60px;
+      page-break-after: always;
+    }
+    .page:last-child { page-break-after: avoid; }
+
+    /* ── Section Headers ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid var(--border);
+    }
+    .section-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .section-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -.5px;
+    }
+    .section-num {
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--light);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .card-accent {
+      border-left: 4px solid var(--accent);
+    }
+    .card-success { border-left: 4px solid var(--success); }
+    .card-danger  { border-left: 4px solid var(--danger);  }
+    .card-warning { border-left: 4px solid var(--warning); }
+
+    .card h3 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .card p {
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    /* ── Grid ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+    /* ── Feature Box ── */
+    .feature-box {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      break-inside: avoid;
+    }
+    .feature-icon { font-size: 28px; margin-bottom: 10px; }
+    .feature-title { font-size: 13px; font-weight: 700; margin-bottom: 5px; }
+    .feature-desc  { font-size: 11.5px; color: var(--muted); line-height: 1.6; }
+
+    /* ── Tech Table ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      font-size: 12.5px;
+    }
+    th {
+      background: #f3f4f6;
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--muted);
+      border-bottom: 2px solid var(--border);
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f9fafb; }
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 100px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .badge-green  { background: #d1fae5; color: #065f46; }
+    .badge-blue   { background: #dbeafe; color: #1e40af; }
+    .badge-purple { background: #ede9fe; color: #5b21b6; }
+    .badge-red    { background: #fee2e2; color: #991b1b; }
+
+    /* ── Steps ── */
+    .steps { display: flex; flex-direction: column; gap: 12px; }
+    .step  {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 14px 16px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      break-inside: avoid;
+    }
+    .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      color: #fff;
+      font-weight: 800;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-body { flex: 1; }
+    .step-body strong { font-size: 13px; display: block; margin-bottom: 3px; }
+    .step-body span   { font-size: 12px; color: var(--muted); }
+
+    /* ── Stat boxes ── */
+    .stat-box {
+      background: linear-gradient(135deg, #0f0f1a, #1a1a2e);
+      color: #fff;
+      border-radius: 14px;
+      padding: 22px;
+      text-align: center;
+    }
+    .stat-num   { font-size: 36px; font-weight: 900; color: #818cf8; }
+    .stat-label { font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing:.06em; margin-top: 4px; }
+
+    /* ── Highlight block ── */
+    .highlight {
+      background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.08));
+      border: 1px solid rgba(99,102,241,0.25);
+      border-radius: 14px;
+      padding: 22px 24px;
+      margin-bottom: 20px;
+    }
+    .highlight p { color: var(--text); line-height: 1.8; }
+
+    /* ── Architecture diagram ── */
+    .arch {
+      background: #0f0f1a;
+      border-radius: 14px;
+      padding: 28px;
+      color: #fff;
+      font-family: monospace;
+      font-size: 12px;
+      line-height: 2;
+      text-align: center;
+    }
+    .arch .layer {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      padding: 8px 16px;
+      display: inline-block;
+      margin: 4px;
+      font-size: 11px;
+    }
+    .arch .arrow { color: #818cf8; }
+    .arch .layer-title { color: #a5b4fc; font-size: 10px; letter-spacing:.1em; margin-bottom: 8px; text-transform: uppercase; }
+
+    /* ── Footer ── */
+    .footer {
+      background: #0f0f1a;
+      color: rgba(255,255,255,0.4);
+      text-align: center;
+      padding: 20px;
+      font-size: 11px;
+      page-break-before: avoid;
+    }
+
+    /* ── Print ── */
+    @media print {
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .page { page-break-after: always; }
+      .cover { page-break-after: always; min-height: 100vh; }
+      .no-break { break-inside: avoid; }
+    }
+
+    @media screen {
+      body { background: #e5e7eb; }
+      .cover { margin-bottom: 0; }
+      .page { margin: 32px auto; box-shadow: 0 4px 24px rgba(0,0,0,0.1); background: #fff; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- COVER PAGE -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-badge">🎓 Final Year Project Report · 2024–25</div>
+  <div class="cover-icon">🛰️</div>
+  <h1>GPS Emergency<br><span>Tracker</span></h1>
+  <p class="cover-sub">A real-time multi-device location tracking and emergency alert system built with Python, Flask, and modern web APIs</p>
+  <div class="cover-tags">
+    <span class="cover-tag">📍 Real-Time GPS</span>
+    <span class="cover-tag">🆘 Emergency SOS</span>
+    <span class="cover-tag">📧 Email Alerts</span>
+    <span class="cover-tag">📞 Voice Calls</span>
+    <span class="cover-tag">📱 Multi-Device</span>
+    <span class="cover-tag">🔔 Browser Notifications</span>
+  </div>
+  <div class="cover-meta">
+    <div class="cover-meta-item">
+      <div class="num">12+</div>
+      <div class="label">Features</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="num">100%</div>
+      <div class="label">Free APIs</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="num">0</div>
+      <div class="label">App Install</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- PAGE 1 — PROJECT OVERVIEW -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-header">
+    <div class="section-icon">📋</div>
+    <div>
+      <div class="section-num">Section 01</div>
+      <div class="section-title">Project Overview</div>
+    </div>
+  </div>
+
+  <div class="highlight">
+    <p><strong>GPS Emergency Tracker</strong> is a web-based real-time location tracking and emergency alert system. It allows users to share their live GPS location, trigger SOS alerts, and automatically notify emergency contacts via email and automated phone calls — all from a mobile phone browser with <strong>no app installation required</strong>.</p>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:20px">
+    <div class="card card-accent">
+      <h3>🎯 Problem Statement</h3>
+      <p>In emergencies — accidents, medical crises, or personal safety situations — people are unable to quickly inform loved ones of their exact location. Existing solutions require expensive hardware, dedicated apps, or complex setup.</p>
+    </div>
+    <div class="card card-success">
+      <h3>💡 Our Solution</h3>
+      <p>A browser-based GPS tracker that works on any smartphone instantly. Just open the website, click Start Tracking — your location is shared live with emergency contacts who receive alerts automatically.</p>
+    </div>
+  </div>
+
+  <div class="grid-3" style="margin-bottom:20px">
+    <div class="stat-box">
+      <div class="stat-num">≤15m</div>
+      <div class="stat-label">GPS Accuracy<br>on Mobile</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num">30s</div>
+      <div class="stat-label">Alert delivery<br>speed</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num">∞</div>
+      <div class="stat-label">Devices<br>supported</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🌟 Key Highlights</h3>
+    <p>
+      ✅ Works on any smartphone browser (Chrome, Safari) — no app download needed<br>
+      ✅ Real-time map with live location updates every 30 seconds<br>
+      ✅ Automatic emergency detection — no need to manually press SOS<br>
+      ✅ Multi-device tracking — track all logged-in phones on one map<br>
+      ✅ 100% free technology stack (no paid APIs required for basic use)
+    </p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- PAGE 2 — CORE FEATURES -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-header">
+    <div class="section-icon">⚡</div>
+    <div>
+      <div class="section-num">Section 02</div>
+      <div class="section-title">Core Features</div>
+    </div>
+  </div>
+
+  <div class="grid-3" style="margin-bottom:16px">
+    <div class="feature-box">
+      <div class="feature-icon">📍</div>
+      <div class="feature-title">Live GPS Tracking</div>
+      <div class="feature-desc">Uses the browser's HTML5 Geolocation API to track location in real time. Accuracy of 3–15 metres on mobile phones with GPS chips.</div>
+    </div>
+    <div class="feature-box">
+      <div class="feature-icon">🗺️</div>
+      <div class="feature-title">Interactive Map</div>
+      <div class="feature-desc">Powered by Leaflet.js + OpenStreetMap (completely free). Shows live position, movement trail, accuracy circle, and safe zones.</div>
+    </div>
+    <div class="feature-box">
+      <div class="feature-icon">🆘</div>
+      <div class="feature-title">SOS Button</div>
+      <div class="feature-desc">Large one-tap emergency button. Instantly sends alerts to all emergency contacts via email and automated phone call simultaneously.</div>
+    </div>
+    <div class="feature-box">
+      <div class="feature-icon">🤖</div>
+      <div class="feature-title">Auto Emergency Detection</div>
+      <div class="feature-desc">Rule-based AI engine monitors speed, movement patterns, and time. Automatically detects emergencies without user input.</div>
+    </div>
+    <div class="feature-box">
+      <div class="feature-icon">📧</div>
+      <div class="feature-title">Email Alerts</div>
+      <div class="feature-desc">Sends a rich HTML email with GPS coordinates, address, and Google Maps link to every emergency contact when an alert fires.</div>
+    </div>
+    <div class="feature-box">
+      <div class="feature-icon">📞</div>
+      <div class="feature-title">Voice Call Alerts</div>
+      <div class="feature-desc">Twilio API makes automated phone calls to emergency contacts, reading the emergency message and location aloud. Works worldwide.</div>
+    </div>
+    <div class="feature-box">
+      <div class="feature-icon">📱</div>
+      <div class="feature-title">Multi-Device Tracking</div>
+      <div class="feature-desc">Track every phone and browser logged into your account on one map. See device type, location, accuracy, and last update time.</div>
+    </div>
+    <div class="feature-box">
+      <div class="feature-icon">🏠</div>
+      <div class="feature-title">Geofencing / Safe Zones</div>
+      <div class="feature-desc">Define circular safe zones (e.g. Home, School). Get alerted automatically when the device leaves the safe zone boundary.</div>
+    </div>
+    <div class="feature-box">
+      <div class="feature-icon">🔔</div>
+      <div class="feature-title">Browser Notifications</div>
+      <div class="feature-desc">Push notifications appear even when the browser tab is in the background. Emergency alerts stay on screen until dismissed.</div>
+    </div>
+    <div class="feature-box">
+      <div class="feature-icon">🔊</div>
+      <div class="feature-title">Voice Announcement</div>
+      <div class="feature-desc">Web Speech API speaks the emergency alert aloud on the device: "Emergency Alert! John needs help at [location]."</div>
+    </div>
+    <div class="feature-box">
+      <div class="feature-icon">📋</div>
+      <div class="feature-title">Location History</div>
+      <div class="feature-desc">Full movement history stored in the database. View past routes on the map for last 1h, 6h, 12h, or 24h time periods.</div>
+    </div>
+    <div class="feature-box">
+      <div class="feature-icon">🏛️</div>
+      <div class="feature-title">Admin Dashboard</div>
+      <div class="feature-desc">Real-time admin panel showing all users on a single map with live Socket.IO updates, alert history, and user management.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- PAGE 3 — HOW IT WORKS -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-header">
+    <div class="section-icon">⚙️</div>
+    <div>
+      <div class="section-num">Section 03</div>
+      <div class="section-title">How It Works</div>
+    </div>
+  </div>
+
+  <div class="steps" style="margin-bottom:28px">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <strong>📝 Register & Login</strong>
+        <span>User creates an account with name, email, and password. Shares login credentials with family members who want to track or be tracked.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <strong>👥 Add Emergency Contacts</strong>
+        <span>Add family members' name, email, and phone number. These people will be notified when an emergency occurs.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <strong>📍 Start Tracking</strong>
+        <span>Open the tracker page on a mobile phone. Click "Start Tracking" and allow location permission. The browser's GPS sends real-time coordinates to the server every 30 seconds.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <strong>🤖 Emergency Detection</strong>
+        <span>The server's rule-based engine continuously monitors the location data. If no movement is detected for 2+ minutes, speed is abnormally low, or SOS is pressed — an emergency is triggered.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <strong>🚨 Alerts Fire Simultaneously</strong>
+        <span>The system sends: (a) HTML email with map link to all contacts, (b) Automated Twilio voice calls that speak the location aloud, (c) Browser push notification, (d) Voice announcement on device.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">6</div>
+      <div class="step-body">
+        <strong>✅ Resolve & Stay Safe</strong>
+        <span>Once safe, user clicks "I'm Safe — Resolve Alert". All alarms stop, contacts are not notified further, and monitoring resumes normally.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Architecture -->
+  <div class="section-header">
+    <div class="section-icon">🏗️</div>
+    <div>
+      <div class="section-num">Architecture</div>
+      <div class="section-title">System Flow</div>
+    </div>
+  </div>
+
+  <div class="arch">
+    <div class="layer-title">📱 Mobile Browser (User Device)</div>
+    <div><span class="layer">HTML5 GPS API</span> → <span class="layer">Leaflet.js Map</span> → <span class="layer">Socket.IO Client</span></div>
+    <div class="arrow" style="font-size:18px;margin:8px 0">↕ HTTPS + WebSocket</div>
+    <div class="layer-title">🖥️ Python Flask Server</div>
+    <div><span class="layer">Flask Routes</span> → <span class="layer">Emergency Engine</span> → <span class="layer">Socket.IO Server</span></div>
+    <div class="arrow" style="font-size:18px;margin:8px 0">↕</div>
+    <div class="layer-title">🗄️ Data &amp; External APIs</div>
+    <div><span class="layer">SQLite DB</span> <span class="layer">Nominatim Geocoding</span> <span class="layer">Gmail SMTP</span> <span class="layer">Twilio Calls</span></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- PAGE 4 — TECHNOLOGY STACK -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-header">
+    <div class="section-icon">🛠️</div>
+    <div>
+      <div class="section-num">Section 04</div>
+      <div class="section-title">Technology Stack</div>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Component</th>
+        <th>Technology</th>
+        <th>Purpose</th>
+        <th>Cost</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Backend</strong></td>
+        <td>Python + Flask</td>
+        <td>Web server, REST API, routing</td>
+        <td><span class="badge badge-green">Free</span></td>
+      </tr>
+      <tr>
+        <td><strong>Real-Time</strong></td>
+        <td>Flask-SocketIO + Eventlet</td>
+        <td>Live location push to admin dashboard</td>
+        <td><span class="badge badge-green">Free</span></td>
+      </tr>
+      <tr>
+        <td><strong>Database</strong></td>
+        <td>SQLite + SQLAlchemy</td>
+        <td>Users, locations, alerts, contacts</td>
+        <td><span class="badge badge-green">Free</span></td>
+      </tr>
+      <tr>
+        <td><strong>GPS</strong></td>
+        <td>HTML5 Geolocation API</td>
+        <td>Get device GPS coordinates in browser</td>
+        <td><span class="badge badge-green">Free</span></td>
+      </tr>
+      <tr>
+        <td><strong>Maps</strong></td>
+        <td>Leaflet.js + OpenStreetMap</td>
+        <td>Interactive map display</td>
+        <td><span class="badge badge-green">Free</span></td>
+      </tr>
+      <tr>
+        <td><strong>Geocoding</strong></td>
+        <td>Nominatim (OpenStreetMap)</td>
+        <td>Convert GPS coordinates to address</td>
+        <td><span class="badge badge-green">Free</span></td>
+      </tr>
+      <tr>
+        <td><strong>Email Alerts</strong></td>
+        <td>Gmail SMTP</td>
+        <td>Send HTML emergency emails</td>
+        <td><span class="badge badge-green">Free</span></td>
+      </tr>
+      <tr>
+        <td><strong>Voice Calls</strong></td>
+        <td>Twilio API</td>
+        <td>Automated emergency phone calls</td>
+        <td><span class="badge badge-blue">Free Trial</span></td>
+      </tr>
+      <tr>
+        <td><strong>Voice TTS</strong></td>
+        <td>Web Speech API</td>
+        <td>Speaks alert aloud on device</td>
+        <td><span class="badge badge-green">Free</span></td>
+      </tr>
+      <tr>
+        <td><strong>Notifications</strong></td>
+        <td>Browser Notification API</td>
+        <td>System push notifications</td>
+        <td><span class="badge badge-green">Free</span></td>
+      </tr>
+      <tr>
+        <td><strong>Frontend</strong></td>
+        <td>HTML5, CSS3, JavaScript</td>
+        <td>UI, animations, map interaction</td>
+        <td><span class="badge badge-green">Free</span></td>
+      </tr>
+      <tr>
+        <td><strong>Auth</strong></td>
+        <td>Flask-Login + bcrypt</td>
+        <td>Secure user authentication</td>
+        <td><span class="badge badge-green">Free</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="grid-2">
+    <div class="card card-accent">
+      <h3>📁 Project Files</h3>
+      <p>
+        <strong>app.py</strong> — Main Flask server &amp; all routes<br>
+        <strong>models.py</strong> — Database models (SQLAlchemy)<br>
+        <strong>emergency.py</strong> — Emergency detection engine<br>
+        <strong>notifier.py</strong> — Email + Twilio voice calls<br>
+        <strong>config.py</strong> — App configuration<br>
+        <strong>tracker.js</strong> — GPS + map + SOS (frontend)<br>
+        <strong>style.css</strong> — Premium dark UI design<br>
+        <strong>templates/</strong> — 8 HTML page templates
+      </p>
+    </div>
+    <div class="card card-success">
+      <h3>🗄️ Database Tables</h3>
+      <p>
+        <strong>users</strong> — Account info, name, email, phone<br>
+        <strong>locations</strong> — GPS history per device<br>
+        <strong>emergency_contacts</strong> — Alert recipients<br>
+        <strong>alerts</strong> — Emergency event log<br>
+        <strong>safe_zones</strong> — Geofence definitions<br><br>
+        All stored locally in <strong>gps_tracker.db</strong><br>
+        No cloud database needed
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- PAGE 5 — PAGES & UI -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-header">
+    <div class="section-icon">🖥️</div>
+    <div>
+      <div class="section-num">Section 05</div>
+      <div class="section-title">Application Pages &amp; UI</div>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Page</th>
+        <th>URL</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>🏠 Landing Page</strong></td>
+        <td>/</td>
+        <td>Project homepage with features overview and login/register links</td>
+      </tr>
+      <tr>
+        <td><strong>🔐 Login</strong></td>
+        <td>/login</td>
+        <td>Secure login with email + password, remember me option</td>
+      </tr>
+      <tr>
+        <td><strong>📝 Register</strong></td>
+        <td>/register</td>
+        <td>Create new account with name, email, phone, password</td>
+      </tr>
+      <tr>
+        <td><strong>📍 Live Tracker</strong></td>
+        <td>/tracker</td>
+        <td>Main GPS tracking page with interactive map, SOS button, speed/accuracy display</td>
+      </tr>
+      <tr>
+        <td><strong>📱 My Devices</strong></td>
+        <td>/my-devices</td>
+        <td>All phones/browsers logged into account shown on one map — live refresh every 15 seconds</td>
+      </tr>
+      <tr>
+        <td><strong>👥 Contacts</strong></td>
+        <td>/contacts</td>
+        <td>Manage emergency contacts (name, email, phone, relationship). One-tap call buttons.</td>
+      </tr>
+      <tr>
+        <td><strong>📋 History</strong></td>
+        <td>/history</td>
+        <td>View past movement history on map, filter by time period (1h/6h/12h/24h)</td>
+      </tr>
+      <tr>
+        <td><strong>⚙️ Settings</strong></td>
+        <td>/settings</td>
+        <td>Configure Gmail SMTP for emails and Twilio for voice calls. Test both with one click.</td>
+      </tr>
+      <tr>
+        <td><strong>🏛️ Admin Dashboard</strong></td>
+        <td>/dashboard</td>
+        <td>Admin-only view: all users on live map, real-time Socket.IO updates, alert history</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="section-header" style="margin-top:28px">
+    <div class="section-icon">🎨</div>
+    <div>
+      <div class="section-num">Design</div>
+      <div class="section-title">UI Design System</div>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card">
+      <h3>🌑 Dark Theme</h3>
+      <p>Premium dark glassmorphism design with deep navy backgrounds, glowing borders, and smooth gradients. Inspired by modern security apps.</p>
+    </div>
+    <div class="card">
+      <h3>✨ Micro-Animations</h3>
+      <p>Pulsing SOS button with ring animations, live tracking dot, smooth map transitions, hover effects, and toast notification slide-ins.</p>
+    </div>
+    <div class="card">
+      <h3>📱 Responsive</h3>
+      <p>Fully responsive layout works on all screen sizes — desktop admin dashboard adapts to mobile layout for field use.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- PAGE 6 — EMERGENCY SYSTEM & USE CASES -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-header">
+    <div class="section-icon">🚨</div>
+    <div>
+      <div class="section-num">Section 06</div>
+      <div class="section-title">Emergency Detection System</div>
+    </div>
+  </div>
+
+  <div class="highlight">
+    <p>The emergency engine in <strong>emergency.py</strong> runs a rule-based analysis on every location update without requiring any AI API key. It checks multiple conditions simultaneously and assigns a severity level.</p>
+  </div>
+
+  <table style="margin-bottom:24px">
+    <thead>
+      <tr><th>Rule</th><th>Condition</th><th>Severity</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>🆘 Manual SOS</strong></td>
+        <td>User presses the SOS button</td>
+        <td><span class="badge badge-red">CRITICAL</span></td>
+      </tr>
+      <tr>
+        <td><strong>⏸️ No Movement</strong></td>
+        <td>No movement detected for 2+ minutes</td>
+        <td><span class="badge badge-red">HIGH</span></td>
+      </tr>
+      <tr>
+        <td><strong>🐢 Very Low Speed</strong></td>
+        <td>Speed under 1 km/h for extended time</td>
+        <td><span class="badge badge-blue">MEDIUM</span></td>
+      </tr>
+      <tr>
+        <td><strong>🏠 Geofence Breach</strong></td>
+        <td>Device leaves defined safe zone</td>
+        <td><span class="badge badge-blue">MEDIUM</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="section-header">
+    <div class="section-icon">👨‍👩‍👧</div>
+    <div>
+      <div class="section-num">Use Cases</div>
+      <div class="section-title">Real-World Applications</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card card-danger">
+      <h3>👧 Child Safety</h3>
+      <p>Parents track their child's school route. Safe zone set around school — alert fires if child leaves school campus during hours. Parents see live location on the My Devices map.</p>
+    </div>
+    <div class="card card-warning">
+      <h3>👴 Elderly Care</h3>
+      <p>Families monitor elderly relatives. Auto-detection fires if senior hasn't moved for too long. Instant phone call to family with exact location and Google Maps link.</p>
+    </div>
+    <div class="card card-accent">
+      <h3>🏃 Solo Travel Safety</h3>
+      <p>Travellers share live location with family members. SOS button sends immediate alerts if in danger. No cellular data needed — works on WiFi too.</p>
+    </div>
+    <div class="card card-success">
+      <h3>🏢 Field Worker Safety</h3>
+      <p>Companies track field employees. Admin dashboard shows all workers on one map in real time. Emergency detection protects lone workers on remote sites.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- PAGE 7 — SETUP & FUTURE SCOPE -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-header">
+    <div class="section-icon">🚀</div>
+    <div>
+      <div class="section-num">Section 07</div>
+      <div class="section-title">Setup &amp; Running the Project</div>
+    </div>
+  </div>
+
+  <div class="steps" style="margin-bottom:28px">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <strong>Install Python Dependencies</strong>
+        <span>pip install flask flask-login flask-sqlalchemy flask-socketio eventlet bcrypt requests python-dotenv twilio</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <strong>Run the Server</strong>
+        <span>cd "gps tracker" → python app.py → Server starts at http://localhost:5000</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <strong>Login with Admin Account</strong>
+        <span>Email: admin@gpstracker.com · Password: admin123 (auto-created on first run)</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <strong>Configure Email Alerts (Optional)</strong>
+        <span>Go to Settings → add Gmail address + App Password. Test with "Send Test Email" button.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <strong>Track on Mobile</strong>
+        <span>On your phone browser, open http://[PC-IP]:5000/tracker → Start Tracking → allow location permission.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-icon">🔮</div>
+    <div>
+      <div class="section-num">Section 08</div>
+      <div class="section-title">Future Scope</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>🤖 AI Emergency Detection</h3>
+      <p>Integrate Groq or Gemini API to analyze movement patterns using machine learning — detect falls, accidents, or unusual behavior more accurately than rule-based detection.</p>
+    </div>
+    <div class="card">
+      <h3>📲 Mobile App (PWA)</h3>
+      <p>Convert to a Progressive Web App (PWA) that can be installed on Android/iOS like a native app — enabling background tracking even when browser is closed.</p>
+    </div>
+    <div class="card">
+      <h3>💬 WhatsApp Alerts</h3>
+      <p>Use Twilio WhatsApp API to send emergency messages with map screenshots directly to contacts' WhatsApp — no email required.</p>
+    </div>
+    <div class="card">
+      <h3>🌐 Cloud Deployment</h3>
+      <p>Deploy to Heroku, Railway, or AWS — making the tracker accessible globally without needing the PC to be on. Support thousands of concurrent users.</p>
+    </div>
+    <div class="card">
+      <h3>📡 Offline Mode</h3>
+      <p>Use device sensors (accelerometer, barometer) to detect emergencies even without internet. Queue alerts and send when connectivity resumes.</p>
+    </div>
+    <div class="card">
+      <h3>🗺️ Route Playback</h3>
+      <p>Animated replay of full day movement history on the map — useful for reviewing a child's daily school route or a field worker's patrol path.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- FOOTER -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="footer">
+  <p>🛰️ GPS Emergency Tracker · Built with Python Flask, Leaflet.js, Socket.IO &amp; Twilio · All features demonstrated are fully functional</p>
+  <p style="margin-top:6px">📍 Real-Time Tracking · 🆘 Emergency SOS · 📧 Email Alerts · 📞 Voice Calls · 📱 Multi-Device</p>
+</div>
+
+<!-- Print Button (screen only) -->
+<div style="position:fixed;bottom:24px;right:24px;z-index:999" class="no-print">
+  <button onclick="window.print()"
+    style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;
+           border:none;padding:14px 24px;border-radius:50px;font-size:14px;
+           font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(99,102,241,0.5);
+           font-family:Inter,sans-serif">
+    🖨️ Save as PDF
+  </button>
+</div>
+
+<style>
+@media print { .no-print { display: none !important; } }
+</style>
+
+</body>
+</html>
