@@ -10,6 +10,7 @@ eventlet==0.36.1
 requests==2.31.0
 python-dotenv==1.0.1
 email-validator==2.1.1
+Flask-SocketIO
 gunicorn
-eventlet
+eventlet>=0.36.1
 twilio>=9.0.0
