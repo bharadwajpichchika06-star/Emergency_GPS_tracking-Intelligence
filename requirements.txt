@@ -10,7 +10,7 @@ eventlet==0.36.1
 requests==2.31.0
 python-dotenv==1.0.1
 email-validator==2.1.1
-Flask-SocketIO
-gunicorn
-eventlet>=0.36.1
+gunicorn==22.0.0
+psycopg2-binary==2.9.9
+
 twilio>=9.0.0

@@ -720,15 +720,18 @@ def init_db():
             db.session.commit()
             logger.info(f"Admin created: {app.config['ADMIN_EMAIL']}")
 
+# Call database init immediately to ensure tables are created on Gunicorn startup
+init_db()
 
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
-    init_db()
     print("\n" + "="*55)
     print("  GPS Emergency Tracker is running!")
-    print("  Open http://localhost:5000 in your browser")
     print(f"  Admin login: {Config.ADMIN_EMAIL} / {Config.ADMIN_PASSWORD}")
     print("="*55 + "\n")
-    socketio.run(app, host="0.0.0.0", port=5000, debug=True, allow_unsafe_werkzeug=True)
+    port = int(os.environ.get("PORT", 5000))
+    socketio.run(app, host="0.0.0.0", port=port, debug=False, allow_unsafe_werkzeug=True)
+
+
