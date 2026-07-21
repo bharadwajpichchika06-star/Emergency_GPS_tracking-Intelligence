@@ -32,7 +32,7 @@ login_manager = LoginManager(app)
 login_manager.login_view = "login"
 login_manager.login_message_category = "info"
 
-socketio = SocketIO(app, async_mode="threading", cors_allowed_origins="*")
+socketio = SocketIO(app, async_mode=None, cors_allowed_origins="*")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
